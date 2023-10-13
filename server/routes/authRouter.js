@@ -4,8 +4,9 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 
 // Define routes
-router.get('/login', authController.loginController);
+router.post('/login', authController.loginController);
 router.post('/signup', authController.signupController);
-router.post('/refresh', authController.refreshAccessTokenController);
+router.get('/refresh', authController.refreshAccessTokenController);
+router.get('/temp', authController.tempController);
 
 module.exports = router;
