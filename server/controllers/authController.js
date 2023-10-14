@@ -30,10 +30,6 @@ const signupController = async (req, res) => {
     }
 }
 
-const tempController = (req, res) =>{
-    res.send({message:'hi i am temp'});
-}
-
 const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -80,7 +76,6 @@ const loginController = async (req, res) => {
 const refreshAccessTokenController = async (req, res) => {
     // check jwt cookie present or not
     const cookies = req.cookies;
-    console.log('cookies in refresh ',cookies);
     if(!cookies.jwt)
         return res.send(failure(401, "Refresh token in cookie is required"));
 
@@ -108,7 +103,7 @@ const generateAccessToken = (data) => {
         // access token expires in 10 min for security we genreate access token by refresh token before it expires
         // so if someone get access token it only works for 10 min and then it expires
         const token = jwt.sign(data, process.env.ACCESS_TOKEN_PRIVATE_KEY, {
-            expiresIn: "30s",
+            expiresIn: "10m",
         });
         return token;
     } catch (error) {
@@ -123,7 +118,6 @@ const generateRefreshToken = (data) => {
         const token = jwt.sign(data, process.env.REFRESH_TOKEN_PRIVATE_KEY, {
             expiresIn: "1y"
         });
-        console.log('refresh token -> ',token);
         return token;
     } catch (error) {
         console.log(error);
@@ -133,5 +127,4 @@ module.exports = {
     loginController,
     signupController,
     refreshAccessTokenController,
-    tempController
 }

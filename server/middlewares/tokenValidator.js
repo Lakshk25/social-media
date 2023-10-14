@@ -5,7 +5,7 @@ module.exports = async (req, res, next) => {
     // we check all three for more flexibility and to catch specific error otherwise we can only use req.headers.authorization
     // this check that authorization is present it contains bearer and token and autorization starts with Bearer
     const token = req.headers || req.headers.authorization || req.headers.authorization.startsWith("Bearer")
-    console.log(req.headers.authorization);
+    // console.log(req.headers.authorization);
     if(!token)
         return res.send(failure(401 ,"Access Denied"));
 

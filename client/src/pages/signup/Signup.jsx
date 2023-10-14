@@ -10,20 +10,20 @@ const Signup = () => {
     const navigate = useNavigate();
 
     async function handleSubmit(e) {
-        console.log(import.meta.env.REACT_APP_SERVER_BASE_URL);
         e.preventDefault();
-        try {
-            const result = await axiosClient.post("/api/signup", {
-                name,
-                email,
-                password,
-            });
-            console.log(result);
-            setItem(KEY_ACCESS_TOKEN, result.result.accessToken);
-            navigate('/');
-        } catch (error) {
-            console.log(error);
+        try{
+        const response = await axiosClient.post('/api/signup',{
+            email:email,
+            password:password
+        });
+        const data = response.data;
+        console.log(data);
+        if(data.status === 'ok'){
+            navigate('/login');
         }
+    }catch(error){
+        console.log('signup error ',error);
+    }
     }
     return (
         <div className="Signup">
@@ -43,7 +43,7 @@ const Signup = () => {
                         type="email"
                         className="email"
                         id="email"
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => setEmail(e.target.value)} required
                     />
 
                     <label htmlFor="password">Password</label>
@@ -52,6 +52,7 @@ const Signup = () => {
                         className="password"
                         id="password"
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                     />
 
                     <input type="submit" className="submit" />

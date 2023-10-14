@@ -2,31 +2,26 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Login.scss";
 import { axiosClient } from "../../utils/axiosClient";
-import { KEY_ACCESS_TOKEN, setItem } from "../../utils/localStorageManager";
+import { KEY_ACCESS_TOKEN, setItem, getItem } from "../../utils/localStorageManager";
 
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
-
     async function handleSubmit(e) {
         e.preventDefault();
-        try {
-            const response = await axiosClient.post('/api/login', {
-                email,
-                password
-            });
-
-            if (response.data.status === "ok") {
-                const accessToken = response.data.result.accessToken;
-                setItem(KEY_ACCESS_TOKEN, accessToken);
+        try{
+            const response = axiosClient.post('/api/login',{
+                email:email,
+                password:password
+            })
+            const data = (await response).data;
+            if(data.status === 'ok'){
+                setItem(KEY_ACCESS_TOKEN ,data.result[KEY_ACCESS_TOKEN]);
                 navigate('/');
-            } else {
-                // Handle any errors or show an error message to the user.
-                console.error("Login failed:", response.data);
             }
-        } catch (error) {
-            console.error("Login error:", error);
+        }catch(error){
+            console.log('login failed ', error);
         }
     }
 

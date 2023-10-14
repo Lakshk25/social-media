@@ -1,4 +1,6 @@
-export const KEY_ACCESS_TOKEN = 'access_token';
+// this code is used to get set or remove token from local storage
+
+export const KEY_ACCESS_TOKEN = 'accessToken';
 
 export const getItem = (key) =>{
     return localStorage.getItem(key);

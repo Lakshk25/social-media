@@ -1,25 +1,18 @@
 import React, { useEffect } from 'react'
 import { axiosClient } from '../../utils/axiosClient';
 
-const Home = () => {
-  const postsFunc = async () => {
+const getData = async () =>{
+  const response = await axiosClient('/posts/all');
+  const data = response.data;
+  console.log(data);
+}
 
-    try {
-      console.log('req call from home');
-      const response = await axiosClient.get('/posts/all');
-      console.log('home data -> ', response);
-      const data = response.data;
-      console.log(data);
-    } catch (error) {
-      console.log('home -> error', error);
-    }
-  }
+const Home = () => {
   useEffect(() => {
-    // postsFunc();
+    getData();
   }, []);
   return (
     <div>Home</div>
   )
 }
-
 export default Home
