@@ -6,6 +6,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser')
 const apiRoutes = require('./routes/authRouter');   // authentication routes
 const postsRouter = require("./routes/postsRouter");  //posts routes
+const UserRouter = require("./routes/userRouter");  //User routes
 require('./dbConnect');   // function to connect database
 dotenv.config('./.env');  // to hide secret keys
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use(cors({
 // Routes
 app.use('/api', apiRoutes); // to handle authentication routes
 app.use('/posts', postsRouter); // to handle posts routes
+app.use('/user', UserRouter); // to handle posts routes
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

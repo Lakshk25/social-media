@@ -5,9 +5,9 @@ const {success, failure} = require('../utils/responseWrapper');
 
 const signupController = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const {name, email, password } = req.body;
 
-        if (!email || !password)
+        if (!name || !email || !password)
             return res.send(failure(400, "All fields are required"));
 
         // find if email already present in database
@@ -20,12 +20,14 @@ const signupController = async (req, res) => {
 
         // create method is used to create entry in database we can also use save method if entry already present in DB save method updats it otherwise it creates new entry
         const user = await User.create({
+            name,
             email,
             password: hashedPassword,
         });
         return res.send(success(201, {user})
         );
     } catch (error) {
+        res.send(failure(401,{error}));
         console.log(error);
     }
 }
@@ -103,7 +105,7 @@ const generateAccessToken = (data) => {
         // access token expires in 10 min for security we genreate access token by refresh token before it expires
         // so if someone get access token it only works for 10 min and then it expires
         const token = jwt.sign(data, process.env.ACCESS_TOKEN_PRIVATE_KEY, {
-            expiresIn: "10m",
+            expiresIn: "1y",
         });
         return token;
     } catch (error) {

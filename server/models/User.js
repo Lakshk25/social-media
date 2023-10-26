@@ -9,6 +9,10 @@ const getCurrentISTDate = () => {
 };
 
 const userSchema = new mongoose.Schema({
+  name:{
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
@@ -19,6 +23,24 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+    }
+  ],
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+    }
+  ],
+  posts: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'post',
+    }
+  ],
   date: {
     type: String, // Store the date as a string in IST format
     default: getCurrentISTDate(),
