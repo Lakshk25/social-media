@@ -13,6 +13,7 @@ const Signup = () => {
         e.preventDefault();
         try{
         const response = await axiosClient.post('/api/signup',{
+            name: name,
             email:email,
             password:password
         });

@@ -1,18 +1,17 @@
-import React, { useEffect } from 'react'
-import { axiosClient } from '../../utils/axiosClient';
+import React, { useEffect } from "react";
+import { Outlet } from "react-router";
+import Navbar from "../../components/navbar/Navbar";
+import { axiosClient } from "../../utils/axiosClient";
 
-const getData = async () =>{
-  const response = await axiosClient('/posts/all');
-  const data = response.data;
-  console.log(data);
+function Home() {
+    return (
+        <>
+            <Navbar />
+            <div className="outlet" style={{ marginTop: "60px" }}>
+                <Outlet />
+            </div>
+        </>
+    );
 }
 
-const Home = () => {
-  useEffect(() => {
-    getData();
-  }, []);
-  return (
-    <div>Home</div>
-  )
-}
-export default Home
+export default Home;
