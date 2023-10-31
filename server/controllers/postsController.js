@@ -1,6 +1,8 @@
-const { success, failure } = require('../utils/responseWrapper')
 const User = require('../models/User')
 const Post = require('../models/Post')
+const { success, failure } = require('../utils/responseWrapper')
+const cloudinary = require('cloudinary').v2
+
 const getAllPostsController = async (req, res) => {
     // console.log(req._id);   // here we take id which is inserted by middleware route
     try {
@@ -14,20 +16,32 @@ const getAllPostsController = async (req, res) => {
 
 const createPostController = async (req, res) => {
     try {
-        const owner = req._id;
-        const { caption } = req.body;
-        const user = await User.findById(owner);
+        const { caption, postImg } = req.body;
 
-        console.log("owner -> ", owner)
-        console.log("caption -> ", caption)
-        console.log("user -> ", user)
+        if (!caption || !postImg)
+            return res.send(error(400, 'Caption and postImg are required'));
+
+        const cloudImg = await cloudinary.uploader.upload(postImg, {
+            folder: 'postImg'
+        })
+
+        const owner = req._id;
+        const user = await User.findById(owner);
 
         const post = await Post.create({
             owner,
             caption,
+            image: {
+                publicId : cloudImg.public_id,
+                url: cloudImg.url
+            },
         });
+
         user.posts.push(post._id);
         await user.save();
+        console.log('user ', user);
+        console.log('post ', post);
+
         return res.send(success(201, { post }));
     } catch (error) {
         return res.send(failure(500, error));
@@ -38,10 +52,15 @@ const likeAndUnlikePost = async (req, res) => {
     try {
         const { postId } = req.body;
         const currUserId = req._id;
+
         const post = await Post.findById(postId);
+        if(!post)
+            return res.send(failure(404, "Post not found"));
+
         if (post.likes.includes(currUserId)) {
             const index = post.likes.indexOf(currUserId);
             post.likes.splice(index, 1);
+
             await post.save();
             return res.send(success(200, "Post Unliked"));
         } else {
@@ -58,27 +77,29 @@ const updatePostController = async (req, res) => {
     try {
         const { postId, caption } = req.body;
         const currUserId = req._id;
-        const post = await Post.findById(postId);
 
+        const post = await Post.findById(postId);
         if (!post)
             return res.send(failure(501, "No post found"));
 
         if (post.owner.toString() !== currUserId)
-            return res.send(failure(501, "Only owner can update post"));
+            return res.send(failure(403, "Only owner can update post"));
+        if(caption)
+            post.caption = caption;
 
-        post.caption = caption;
         await post.save();
-        return res.send(post);
+        return res.send(success(200, {post}));
 
     } catch (error) {
-        return res.send(error);
+        return res.send(error(500, {error}));
     }
-}
+};
 
 const deletePostController = async (req, res) => {
     try {
         const { postId } = req.body;
         const currUserId = req._id;
+        
         const currUser = await User.findById(currUserId);
         const post = await Post.findById(postId);
 

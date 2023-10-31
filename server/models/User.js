@@ -9,7 +9,7 @@ const getCurrentISTDate = () => {
 };
 
 const userSchema = new mongoose.Schema({
-  name:{
+  name: {
     type: String,
     required: true,
   },
@@ -22,6 +22,13 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+  },
+  bio: {
+    type: String
+  },
+  avatar: {
+    publicId: String,
+    url: String
   },
   followers: [
     {
@@ -44,7 +51,9 @@ const userSchema = new mongoose.Schema({
   date: {
     type: String, // Store the date as a string in IST format
     default: getCurrentISTDate(),
-  },
+  }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('data', userSchema);
+module.exports = mongoose.model('user', userSchema);

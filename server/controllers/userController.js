@@ -1,17 +1,24 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
 const { success, failure } = require('../utils/responseWrapper');
+const cloudinary = require('cloudinary').v2;
+const { mapPostOutput } = require('../utils/Utils')
 
 const followOrUnfollowUserController = async (req, res) => {
     try {
         const { personId } = req.body;
         const currUserId = req._id;
 
+        if (personId === currUserId)
+            return res.send(failure(409, "Users cannot follow themselves"))
+
         const person = await User.findById(personId);
         const currUser = await User.findById(currUserId);
+
         if (!person)
             return res.send(failure(404, 'User not found'));
 
+        // if already followed
         if (person.followers.includes(currUserId)) {
             const personFollowers = person.followers.indexOf(currUser);
             const currUserFollowing = person.following.indexOf(personId);
@@ -89,7 +96,7 @@ const deleteMyProfileController = async (req, res) => {
     try {
         const currUserId = req._id;
         const currUser = await User.findById(currUserId);
-        if(!currUser)
+        if (!currUser)
             return res.send(failure(404, 'No user found'))
         await Post.deleteMany({
             owner: currUserId,
@@ -129,10 +136,73 @@ const deleteMyProfileController = async (req, res) => {
         return res.send(failure(500, error.message));
     }
 }
+
+const getMyInfoController = async (req, res) => {
+    try {
+        const user = await User.findById(req._id);
+        return res.send(success(200, { user }))
+    } catch (error) {
+        return res.send(failure(500, { error }));
+    }
+}
+
+const updateUserProfileController = async (req, res) => {
+    try {
+        const { name, bio, userImg } = req.body;
+        const user = await User.findById(req._id);
+
+        if (name) {
+            user.name = name;
+        }
+
+        if (bio) {
+            user.bio = bio;
+        }
+
+        if (userImg) {
+            const cloudImg = await cloudinary.uploader.upload(userImg, {
+                folder: 'profileImg'
+            });
+            user.avatar = {
+                url: cloudImg.secure_url,
+                publicId: cloudImg.public_id
+            }
+        }
+        await user.save();
+        return res.send(success(200, { user }));
+    } catch (error) {
+        return res.send(failure(500, { error }))
+    }
+}
+
+const getUserProfileController = async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        const user = await User.findById(userId).populate({
+            path: 'posts',
+            populate:{
+                path: 'owner'
+            }
+        })
+        const fullPosts = user.posts;
+        // Use Promise.all to await the resolution of mapPostOutput for each post
+        const posts = await Promise.all(fullPosts.map(async (item) => {
+            return await mapPostOutput(item, req._id);
+        }));
+        // console.log(posts);
+        return res.send(success(200, { ...user._doc, posts }))
+    } catch (error) {
+        return res.send(failure(500, { error }));
+    }
+}
 module.exports = {
     followOrUnfollowUserController,
     getPostsOfFollowing,
     getMyPostsController,
     getUserPostsController,
-    deleteMyProfileController
+    deleteMyProfileController,
+    getMyInfoController,
+    updateUserProfileController,
+    getUserProfileController,
 }
+
