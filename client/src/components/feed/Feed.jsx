@@ -8,10 +8,7 @@ function Feed() {
     <div className="Feed">
         <div className="container">
           <div className="left-part">
-            <Post />
-            <Post />
-            <Post />
-            <Post />
+
           </div>
           <div className="right-part">
             <div className="following">

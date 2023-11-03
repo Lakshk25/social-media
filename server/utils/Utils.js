@@ -1,7 +1,7 @@
 const Post = require("../models/Post")
+const ta = require('time-ago')
 
-const mapPostOutput = async (postId, userId) =>{
-    const post = await Post.findById(postId);
+const mapPostOutput = async (post, userId) =>{
     return {
          _id: post._id,
          caption: post.caption,
@@ -12,7 +12,8 @@ const mapPostOutput = async (postId, userId) =>{
             avatar: post.owner.avatar
          },
          likesCount: post.likes.length,
-         isLiked: post.likes.includes(userId)
+         isLiked: post.likes.includes(userId),
+         timeAgo: ta.ago(post.createdAt)
     }
 }
 

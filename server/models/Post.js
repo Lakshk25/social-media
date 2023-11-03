@@ -7,12 +7,17 @@ const postSchema = mongoose.Schema({
         required: true
     },
     image: {
-        publicId: String,
-        url: String
+        publicId: {
+            type: String,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true
+        }
     },
     caption: {
         type: String,
-        required: true
     },
     likes: [
         {

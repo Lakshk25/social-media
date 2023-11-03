@@ -25,18 +25,15 @@ const followOrUnfollowUserController = async (req, res) => {
 
             person.followers.splice(personFollowers, 1);
             currUser.following.splice(currUserFollowing, 1);
-
-            await person.save();
-            await currUser.save();
-            return res.send(success(200, 'User unfollowed'));
         }
         else {
             person.followers.push(currUser);
             currUser.following.push(personId);
-            await person.save();
-            await currUser.save();
-            return res.send(success(200, 'User followed'));
         }
+        await person.save();
+        await currUser.save();
+
+        return res.send(success(200, { user: person }));
     } catch (error) {
         return res.send(failure(500, { error }));
     }
@@ -45,32 +42,39 @@ const followOrUnfollowUserController = async (req, res) => {
 const getPostsOfFollowing = async (req, res) => {
     try {
         const currUserId = req._id;
-        const currUser = await User.findById(currUserId);
+        const currUser = await User.findById(currUserId).populate('following');
+        // console.log(currUser);
 
-        const posts = await Post.find({
+        const fullPosts = await Post.find({
             owner: {
                 '$in': currUser.following
             }
-        })
-        return res.send(success(200, { posts }));
+        }).populate('owner', '-password'); // Exclude 'password' field
+        // console.log(fullPosts);
+
+        const posts = await Promise.all(fullPosts.map(async (item) => await mapPostOutput(item, req._id)).reverse());
+        // console.log(posts);
+
+        const followingIds = currUser.following.map((item) => item._id);
+        followingIds.push(req._id);
+
+        const suggestions = await User.find({
+            _id: {
+                $nin: followingIds,
+            }
+        }).select('-password');
+        return res.send(success(200, {...currUser._doc, suggestions, posts}));
     } catch (error) {
-        return res.send(failure(501, { error }));
+        return res.send(failure(501, error.message));
     }
-}
+};
 
 const getMyPostsController = async (req, res) => {
     try {
         const user = req._id;
-
         const posts = await Post.find({
             owner: user
-        }).populate({
-            path: 'likes',
-            model: 'data', // Replace 'user' with the actual model name for users
-            options: { // This will handle empty 'likes' array gracefully
-                errorHandling: 'null', // Return null if 'likes' is empty
-            },
-        });
+        }).populate('likes');
         return res.send(success(200, { posts }));
     } catch (error) {
         return res.send(failure(501, { error }));
@@ -86,21 +90,32 @@ const getUserPostsController = async (req, res) => {
 
         const posts = await Post.find({
             owner: userId
-        })
+        }).populate({
+            path: 'likes',
+            model: 'user', // Replace 'user' with the actual model name for users
+            options: { // This will handle empty 'likes' array gracefully
+                errorHandling: 'null', // Return null if 'likes' is empty
+            },
+        });
         return res.send(success(200, { posts }));
     } catch (error) {
-        return res.send(failure(500, { error }));
+        return res.send(failure(500, error.message));
     }
 }
 const deleteMyProfileController = async (req, res) => {
     try {
         const currUserId = req._id;
         const currUser = await User.findById(currUserId);
+
         if (!currUser)
             return res.send(failure(404, 'No user found'))
+
+        // delete all posts
         await Post.deleteMany({
             owner: currUserId,
         })
+
+        // remove curr user from user followers lists 
         currUser.followers.forEach(async (followerId) => {
             const follower = await User.findById(followerId);
             const index = follower.following.indexOf(currUser);
@@ -108,21 +123,23 @@ const deleteMyProfileController = async (req, res) => {
             await follower.save();
         })
 
+        // remove users from curr user following
         currUser.following.forEach(async (followingId) => {
             const following = await User.findById(followingId);
-            console.log(following);
             const index = following.followers.indexOf(currUser);
             following.followers.splice(index, 1);
             await following.save();
         })
+
+        // remove all liked posts of currUser
         const allPosts = await Post.find();
-        console.log(allPosts);
         allPosts.forEach(async (post) => {
             const index = post.likes.indexOf(currUserId);
             post.likes.splice(index, 1);
             await post.save();
         })
 
+        // delete user
         await currUser.deleteOne();
 
         res.clearCookie('jwt', {
@@ -142,7 +159,7 @@ const getMyInfoController = async (req, res) => {
         const user = await User.findById(req._id);
         return res.send(success(200, { user }))
     } catch (error) {
-        return res.send(failure(500, { error }));
+        return res.send(failure(500, error.message ));
     }
 }
 
@@ -171,7 +188,7 @@ const updateUserProfileController = async (req, res) => {
         await user.save();
         return res.send(success(200, { user }));
     } catch (error) {
-        return res.send(failure(500, { error }))
+        return res.send(failure(500, error.message))
     }
 }
 
@@ -180,7 +197,7 @@ const getUserProfileController = async (req, res) => {
         const userId = req.body.userId;
         const user = await User.findById(userId).populate({
             path: 'posts',
-            populate:{
+            populate: {
                 path: 'owner'
             }
         })
@@ -192,7 +209,7 @@ const getUserProfileController = async (req, res) => {
         // console.log(posts);
         return res.send(success(200, { ...user._doc, posts }))
     } catch (error) {
-        return res.send(failure(500, { error }));
+        return res.send(failure(500, error.message ));
     }
 }
 module.exports = {

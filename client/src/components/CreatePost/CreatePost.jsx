@@ -14,22 +14,23 @@ const CreatePost = () => {
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
-        const FileReader = new FileReader();
-        FileReader.readAsDataURL(file);
-        if(FileReader.readyState === FileReader.DONE){
-            setPostImg(FileReader.result);
-            console.log('img data', FileReader.result);
-        };
-    };
+        const fileReader = new FileReader();
+        fileReader.readAsDataURL(file);
+        fileReader.onload = () => {
+            if (fileReader.readyState === fileReader.DONE) {
+                setPostImg(fileReader.result)
+                // console.log('img data', fileReader.result);
+            }
+        }
+    }
 
     const handlePostSubmit = async() => {
         try{
             dispatch(setLoading(true));
-            const result = await axiosClient.post('/posts', {
+            await axiosClient.post('/posts', {
                 caption,
                 postImg
             });
-            console.log('post done ', result);
         }catch(error){
             console.log('error in handle submit ',error);
         }finally{
@@ -44,7 +45,7 @@ const CreatePost = () => {
             <Avatar/>
         </div>
         <div className="right-part">
-            <input type="text" value='text' className='captionInput' placeholder= "What's on your mind?" onChange={(e) => setCaption(e.target.value)} />
+            <input type="text" value={caption} className='captionInput' placeholder= "What's on your mind?" onChange={(e) => setCaption(e.target.value)}/>
             {postImg && (
                 <div className="img-container">
                     <img src={postImg} alt="post-img" className="post-img" />

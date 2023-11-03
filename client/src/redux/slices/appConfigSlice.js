@@ -49,7 +49,6 @@ const appConfigSlice = createSlice({
             // console.log('my profile set ',state.myProfile);
         })
         builder.addCase(updateMyProfile.fulfilled, (state, action) => {
-            console.log('action ', action);
             state.myProfile = action.payload.user;
         });
     },

@@ -4,7 +4,6 @@ const postsController = require("../controllers/postsController");
 const requireUser = require("../middlewares/tokenValidator");   // middleware to check validity of token
 
 router.post("/", requireUser, postsController.createPostController);
-router.get("/all", requireUser, postsController.getAllPostsController);
 router.post("/like", requireUser, postsController.likeAndUnlikePost);
 router.put("/", requireUser, postsController.updatePostController);
 router.delete("/", requireUser, postsController.deletePostController);

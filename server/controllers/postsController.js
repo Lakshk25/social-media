@@ -2,24 +2,14 @@ const User = require('../models/User')
 const Post = require('../models/Post')
 const { success, failure } = require('../utils/responseWrapper')
 const cloudinary = require('cloudinary').v2
-
-const getAllPostsController = async (req, res) => {
-    // console.log(req._id);   // here we take id which is inserted by middleware route
-    try {
-        console.log('id print -> ', req._id);
-        return res.send(success(201, 'this are all the posts'));
-    } catch (error) {
-        res.send(failure(404, error));
-        console.log(error);
-    }
-};
+const { mapPostOutput } = require('../utils/Utils');
 
 const createPostController = async (req, res) => {
     try {
         const { caption, postImg } = req.body;
 
-        if (!caption || !postImg)
-            return res.send(error(400, 'Caption and postImg are required'));
+        if (!postImg)
+            return res.send(failure(400, 'Caption and postImg are required'));
 
         const cloudImg = await cloudinary.uploader.upload(postImg, {
             folder: 'postImg'
@@ -27,24 +17,25 @@ const createPostController = async (req, res) => {
 
         const owner = req._id;
         const user = await User.findById(owner);
-
+        // console.log(user);
         const post = await Post.create({
             owner,
-            caption,
             image: {
-                publicId : cloudImg.public_id,
+                publicId: cloudImg.public_id,
                 url: cloudImg.url
             },
         });
 
+        if(caption)
+            post.caption = caption;
+        
         user.posts.push(post._id);
         await user.save();
-        console.log('user ', user);
-        console.log('post ', post);
 
         return res.send(success(201, { post }));
     } catch (error) {
-        return res.send(failure(500, error));
+        console.log(error);
+        return res.send(failure(500, error.message));
     }
 }
 
@@ -52,24 +43,23 @@ const likeAndUnlikePost = async (req, res) => {
     try {
         const { postId } = req.body;
         const currUserId = req._id;
-
+        // console.log(postId);
         const post = await Post.findById(postId);
-        if(!post)
+        if (!post)
             return res.send(failure(404, "Post not found"));
 
         if (post.likes.includes(currUserId)) {
             const index = post.likes.indexOf(currUserId);
             post.likes.splice(index, 1);
-
-            await post.save();
-            return res.send(success(200, "Post Unliked"));
         } else {
             post.likes.push(currUserId);
-            await post.save();
-            return res.send(success(200, "Post liked"));
         }
+        await post.save();
+
+        return res.send(success(200, { post: await mapPostOutput(post, req._id) }));
+
     } catch (error) {
-        return res.send(failure(500, error));
+        return res.send(failure(500, error.message));
     }
 }
 
@@ -80,18 +70,19 @@ const updatePostController = async (req, res) => {
 
         const post = await Post.findById(postId);
         if (!post)
-            return res.send(failure(501, "No post found"));
+            return res.send(failure(404, "Post not found"));
 
         if (post.owner.toString() !== currUserId)
             return res.send(failure(403, "Only owner can update post"));
-        if(caption)
+
+        if (caption)
             post.caption = caption;
 
         await post.save();
-        return res.send(success(200, {post}));
+        return res.send(success(200, { post }));
 
     } catch (error) {
-        return res.send(error(500, {error}));
+        return res.send(failure(500, error.message));
     }
 };
 
@@ -99,16 +90,16 @@ const deletePostController = async (req, res) => {
     try {
         const { postId } = req.body;
         const currUserId = req._id;
-        
+
         const currUser = await User.findById(currUserId);
         const post = await Post.findById(postId);
 
         if (!post) {
-            return res.send(failure(404, "No post found"));
+            return res.send(failure(404, "Post not found"));
         }
 
         if (post.owner.toString() !== currUserId) {
-            return res.send(failure(401, "Only the owner can delete the post"));
+            return res.send(failure(403, "Only the owner can delete the post"));
         }
 
         const index = currUser.posts.indexOf(postId);
@@ -117,13 +108,12 @@ const deletePostController = async (req, res) => {
         await currUser.save();
         return res.send(success(202, "Post deleted successfully"));
     } catch (error) {
-        return res.send(failure(500, error));
+        return res.send(failure(500, error.message));
     }
 }
 
 
 module.exports = {
-    getAllPostsController,
     createPostController,
     likeAndUnlikePost,
     updatePostController,
