@@ -8,7 +8,6 @@ const followOrUnfollowUserController = async (req, res) => {
     try {
         const { personId } = req.body;
         const currUserId = req._id;
-
         if (personId === currUserId)
             return res.send(failure(409, "Users cannot follow themselves"))
 

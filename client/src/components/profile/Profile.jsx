@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router";
 import CreatePost from '../CreatePost/CreatePost'
 import { useDispatch, useSelector } from "react-redux";
 import { getUserProfile } from "../../redux/slices/postsSlice";
-import { axiosClient } from "../../utils/axiosClient";
+import { followAndUnfollowUser } from '../../redux/slices/feedSlice'
 
 
 function Profile() {
@@ -14,48 +14,44 @@ function Profile() {
   const params = useParams();
   const userProfile = useSelector(state => state.postsReducer.userProfile);
   const myProfile = useSelector(state => state.appConfigReducer.myProfile);
-  const [posts, setPosts] = useState([]);
-  // console.log(myProfile);
+  const feedData = useSelector((state) => state.feedDataReducer.feedData);
   const dispatch = useDispatch();
   const [isMyProfile, setIsMyProfile] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
 
-  const getMyPosts = async () => {
-    const allPosts = (await axiosClient('/user/getMyPosts')).data.result.posts;
-    // console.log(allPosts);
-    return allPosts;
-  }
-useEffect(() => {
-  const fetchData = async () => {
-    // Dispatch action to get user profile
-    dispatch(getUserProfile({ userId: params.userId }));
-
-    // Set isMyProfile based on the user profile
+  useEffect(() => {
+    dispatch(
+      getUserProfile({ userId: params.userId })
+    );
     setIsMyProfile(myProfile?._id === params.userId);
+    setIsFollowing(feedData?.following?.find((item) => item._id === params.userId));
+    // console.log(userProfile);
+  }, [myProfile, params.userId, feedData]);
 
-    // Fetch user posts
-    const posts = await getMyPosts();
-    setPosts(posts);
-  };
-
-  fetchData();
-}, [params.userId]);
+  const handleUserFollow = () => {
+    dispatch(followAndUnfollowUser({
+      userIdToFollow: params.userId
+    }));
+  }
 
   return (
     <div className="Profile">
       <div className="container">
         <div className="left-part">
-          <CreatePost />
-          {posts.map((post) => <Post key={post._id} post={post}/>)}
+          {isMyProfile && <CreatePost />}
+          {userProfile?.posts?.map((post) => (<Post key={post._id} post={post} />))}
         </div>
         <div className="right-part">
           <div className="profile-card">
-            <img className="user-img" src={userProfile?.avatar?.url} alt="" />
+            <img className="user-img" src={userProfile?.avatar?.url} alt="profile photo" />
             <h3 className="user-name">{userProfile?.name}</h3>
             <div className="follower-info">
               <h4>{`${userProfile?.followers?.length} Followers`}</h4>
               <h4>{`${userProfile?.following?.length} Following`}</h4>
             </div>
-            {!isMyProfile && <button className="follow btn-primary" >Follow</button>}
+
+            {!isMyProfile && (<h5 style={{ marginTop: '10px' }} onClick={handleUserFollow} className={isFollowing ? "hover-link follow-link" : "btn-primary"}>{isFollowing ? "Unfollow" : "Follow"}</h5>)}
+
             {isMyProfile && <button className="update-profile btn-secondary" onClick={() => { navigate('/updateProfile') }}>Update Profile</button>}
           </div>
         </div>

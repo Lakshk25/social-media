@@ -7,21 +7,21 @@ import { useDispatch } from 'react-redux'
 
 function Post({post}) {
     const dispatch = useDispatch();
-    // console.log(post);
-    const [isLiked, setisLiked] = useState(post.isLiked ? true : false)
+    // console.log('post ',post);
+    const [isLiked, setisLiked] = useState(post.isLiked)
 
     const handleLike = async () => {
+        setisLiked(post.isLiked);
         dispatch(likeUnlikePost({postId : post._id}));
     }
     useEffect(() => {
-        setisLiked(isLiked);
-        // console.log(isLiked);
-    }, [post.isLiked]);
+        
+    }, [isLiked, dispatch]);
   return (
     <div className="Post">
         <div className="heading">
             <Avatar />
-            <h4>Anuj Kumar</h4>
+            <h4>{post?.owner.name}</h4>
         </div>
         <div className="content">
             <img src={post?.image?.url} alt="" />
@@ -29,10 +29,10 @@ function Post({post}) {
         <div className="footer">
             <div className="like" onClick={handleLike}>
             {isLiked ? <AiFillHeart style={{color: 'red'}} className="icon" /> : <AiOutlineHeart className="icon" />}
-                <h4>{`${post.likes.length} likes`}</h4>
+                <h4>{`${post?.likesCount} likes`}</h4>
             </div>
             <p className="caption">{post.caption ? post.caption : ' '}</p>
-            <h6 className="time-ago">4 hrs ago</h6>
+            <h6 className="time-ago">{post.timeAgo}</h6>
         </div>
     </div>
   )
