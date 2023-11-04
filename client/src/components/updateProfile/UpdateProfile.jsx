@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import './UpdateProfile.scss';
-import './UpdateProfile.scss'
 import { useSelector, useDispatch } from 'react-redux';
-import { setLoading, updateMyProfile } from '../../redux/slices/appConfigSlice';
+import { showToast, updateMyProfile } from '../../redux/slices/appConfigSlice';
+import { TOAST_SUCCESS } from '../../App';
+import toast, { Toaster } from 'react-hot-toast';
 
 
 function UpdateProfile() {
@@ -16,7 +17,7 @@ function UpdateProfile() {
         setName(myProfile?.name || '');
         setBio(myProfile?.bio || '');
         setUserImg(myProfile?.avatar?.url || '');
-    }, [myProfile]);
+    }, [myProfile, dispatch]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -36,6 +37,11 @@ function UpdateProfile() {
             bio,
             userImg
         }));
+        dispatch(showToast({
+            type: TOAST_SUCCESS,
+            message: "Profile updated"
+        }))
+
     }
     return (
         <div className="UpdateProfile">

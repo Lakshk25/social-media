@@ -3,10 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import "./Login.scss";
 import { axiosClient } from "../../utils/axiosClient";
 import { KEY_ACCESS_TOKEN, setItem, getItem } from "../../utils/localStorageManager";
-
+import { useDispatch } from "react-redux";
+import { showToast } from "../../redux/slices/appConfigSlice";
+import { TOAST_FAILURE, TOAST_SUCCESS } from "../../App";
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     async function handleSubmit(e) {
         e.preventDefault();
@@ -17,10 +20,24 @@ function Login() {
             })
             const data = (await response).data;
             if(data.status === 'ok'){
+                dispatch(showToast({
+                    type: TOAST_SUCCESS,
+                    message: 'Login Successfully'
+                }))
                 setItem(KEY_ACCESS_TOKEN ,data.result[KEY_ACCESS_TOKEN]);
                 navigate('/');
             }
+            else{
+                dispatch(showToast({
+                    type: TOAST_FAILURE,
+                    message: data.message
+                }))
+            }
         }catch(error){
+            dispatch(showToast({
+                type: TOAST_FAILURE,
+                message: error.message
+            }))
             console.log('login failed ', error);
         }
     }

@@ -12,8 +12,8 @@ function Feed() {
 
   useEffect(() => {
     dispatch(getFeedData());
-    // console.log(feedData);
-  }, [dispatch])
+  }, [dispatch, feedData])
+  
   return (
     <div className="Feed">
         <div className="container">
@@ -23,11 +23,11 @@ function Feed() {
           <div className="right-part">
             <div className="following">
               <h3 className="title">You Are Following</h3>
-              {feedData?.following?.map(user => <Follower key={user._id} user={user}/>)}
+              {feedData?.following?.map((user) => <Follower key={user._id} follow={'followed'} user={user}/>)}
             </div>
             <div className="suggestions">
               <h3 className="title">Suggested For You</h3>
-              {feedData?.suggestions?.map(user => <Follower key={user._id} user={user}/>)}
+              {feedData?.suggestions?.map((user) => <Follower key={user._id} follow={'unfollowed'} user={user}/>)}
             </div>
           </div>
         </div>

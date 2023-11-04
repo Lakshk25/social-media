@@ -5,6 +5,9 @@ import {
     removeItem,
     setItem,
 } from "./localStorageManager";
+import store from '../redux/store'
+import { setLoading, showToast } from "../redux/slices/appConfigSlice";
+import { TOAST_FAILURE } from "../App";
 
 const apiURL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -48,6 +51,10 @@ axiosClient.interceptors.response.use(async (response) =>{
         return response;
         }catch(error){
             console.log('response interceptor error ', error);
+            store.dispatch(showToast({
+                type: TOAST_FAILURE,
+                message: error.message
+            }))
             return Promise.reject(error);
         }
 })

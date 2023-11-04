@@ -4,24 +4,31 @@ import './Post.scss'
 import {AiOutlineHeart, AiFillHeart} from 'react-icons/ai'
 import { likeUnlikePost } from '../../redux/slices/postsSlice'
 import { useDispatch } from 'react-redux'
+import { getFeedData } from '../../redux/slices/feedSlice'
+import { useNavigate } from 'react-router-dom'
+import { showToast } from '../../redux/slices/appConfigSlice'
+import { TOAST_SUCCESS } from '../../App'
 
 function Post({post}) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     // console.log('post ',post);
-    const [isLiked, setisLiked] = useState(post.isLiked)
+    const [isLiked, setisLiked] = useState(post.isLiked);
 
     const handleLike = async () => {
-        setisLiked(post.isLiked);
+        setisLiked(!isLiked);
         dispatch(likeUnlikePost({postId : post._id}));
+        dispatch(getFeedData());
+        dispatch(showToast({
+            type: TOAST_SUCCESS,
+            message: `${post?.isLiked ? 'post unliked' : 'post liked'}`
+        }))
     }
-    useEffect(() => {
-        
-    }, [isLiked, dispatch]);
   return (
     <div className="Post">
         <div className="heading">
-            <Avatar />
-            <h4>{post?.owner.name}</h4>
+            <Avatar src={post?.owner?.avatar.url}/>
+            <h4 onClick={() => navigate(`/profile/${post?.owner?._id}`)}>{post?.owner.name}</h4>
         </div>
         <div className="content">
             <img src={post?.image?.url} alt="" />

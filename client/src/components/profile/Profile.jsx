@@ -30,7 +30,7 @@ function Profile() {
 
   const handleUserFollow = () => {
     dispatch(followAndUnfollowUser({
-      userIdToFollow: params.userId
+      personId: params.userId
     }));
   }
 

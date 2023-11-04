@@ -3,14 +3,21 @@ import { AiOutlineLogout } from "react-icons/ai";
 import { useNavigate } from "react-router";
 import Avatar from "../avatar/Avatar";
 import "./Navbar.scss";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { KEY_ACCESS_TOKEN, removeItem } from "../../utils/localStorageManager";
+import { showToast } from "../../redux/slices/appConfigSlice";
+import { TOAST_SUCCESS } from "../../App";
 
 
 function Navbar() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const myProfile = useSelector((state) => state.appConfigReducer.myProfile );
     const handleLogoutClicked = (e) => {
+        dispatch(showToast({
+            type: TOAST_SUCCESS,
+            message: 'Logged out'
+        }))
         e.preventDefault();
         removeItem(KEY_ACCESS_TOKEN);
         navigate('/login');

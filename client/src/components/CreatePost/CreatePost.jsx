@@ -1,16 +1,18 @@
 import React, {useState} from 'react'
 import Avatar from '../avatar/Avatar'
 import './CreatePost.scss'
-import backgroundDummyImg from '../../assets/background.jpeg'
 import {BsCardImage} from 'react-icons/bs'
 import { axiosClient } from '../../utils/axiosClient'
-import { useDispatch } from 'react-redux'
-import { setLoading } from '../../redux/slices/appConfigSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { setLoading, showToast } from '../../redux/slices/appConfigSlice'
+import { getUserProfile } from '../../redux/slices/postsSlice'
+import { TOAST_SUCCESS } from '../../App'
 
 const CreatePost = () => {
     const [postImg, setPostImg] = useState("");
     const [caption, setCaption] = useState("");
     const dispatch = useDispatch();
+    const myProfile = useSelector(state => state.appConfigReducer.myProfile);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -31,6 +33,7 @@ const CreatePost = () => {
                 caption,
                 postImg
             });
+            dispatch(getUserProfile({userId : myProfile?._id}));
         }catch(error){
             console.log('error in handle submit ',error);
         }finally{
@@ -38,6 +41,10 @@ const CreatePost = () => {
             setCaption('');
             setPostImg('');
         }
+        dispatch(showToast({
+            type: TOAST_SUCCESS,
+            message: 'post created'
+        }))
     }
   return (
     <div className='CreatePost'>
