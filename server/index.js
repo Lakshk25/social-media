@@ -8,7 +8,7 @@ const apiRoutes = require('./routes/authRouter');   // authentication routes
 const postsRouter = require("./routes/postsRouter");  //posts routes
 const UserRouter = require("./routes/userRouter");  //User routes
 const cloudinary = require('cloudinary').v2;
-require('./dbConnect');   // function to connect database
+// require('./dbConnect');   // function to connect database
 dotenv.config('');  // to hide secret keys
 const PORT = process.env.PORT || 3000;
 
@@ -32,6 +32,10 @@ app.use(cookieParser());
 app.use('/api', apiRoutes); // to handle authentication routes
 app.use('/posts', postsRouter); // to handle posts routes
 app.use('/user', UserRouter); // to handle posts routes
+
+app.post('/', (req, res) => {
+  res.send('Hello World!');
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
